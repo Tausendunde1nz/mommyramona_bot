@@ -1,0 +1,5 @@
+active_context = 'snapshot'
+
+[[contexts]]
+name = 'snapshot'
+token = 'BBS85RHMFXQi6Rcn2ZAjWNORgT6UNglnpoh6XX6MOqy5Dzm1rKDcdq9JzzD1Ug8o'

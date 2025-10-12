@@ -1,0 +1,11 @@
+{
+  email you@example.com
+}
+
+http://91.98.112.14.sslip.io {
+  redir https://{host}{uri}
+}
+
+91.98.112.14.sslip.io {
+  reverse_proxy nginx-test-web-1:80
+}

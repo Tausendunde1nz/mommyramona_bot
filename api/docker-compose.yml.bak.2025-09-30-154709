@@ -1,0 +1,30 @@
+services:
+  api:
+    build:
+      context: /home/chatops/api
+      dockerfile: Dockerfile
+    command:
+      - uvicorn
+      - main:app
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "8000"
+    container_name: api-mychatbuddy
+
+    env_file:
+      - .env   # <--- hier deine Variablen laden
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --connect-timeout 2 --max-time 4 http://127.0.0.1:8000/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - proxy
+    restart: unless-stopped
+
+networks:
+  proxy:
+    external: true

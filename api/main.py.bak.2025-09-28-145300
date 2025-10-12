@@ -1,0 +1,38 @@
+from fastapi import FastAPI, Request, Header, HTTPException
+from pydantic import BaseModel
+from datetime import datetime, timezone
+import os
+
+app = FastAPI(title="mychatbuddy API")
+
+class ChatIn(BaseModel):
+    message: str
+
+class ChatOut(BaseModel):
+    reply: str
+    ts: str
+
+@app.get("/health")
+async def health():
+    return {"status": "ok", "ts": datetime.now(timezone.utc).isoformat()}
+
+@app.post("/chat", response_model=ChatOut)
+async def chat(body: ChatIn):
+    return ChatOut(
+        reply=f"Du sagtest: {body.message}",
+        ts=datetime.now(timezone.utc).isoformat()
+    )
+
+@app.post("/telegram/webhook")
+async def telegram_webhook(
+    request: Request,
+    x_telegram_bot_api_secret_token: str | None = Header(default=None)
+):
+    expected = os.getenv("TELEGRAM_WEBHOOK_SECRET")
+    if not expected or x_telegram_bot_api_secret_token != expected:
+        # Secret fehlt/falsch -> 403, Telegram wertet das als Fehler
+        raise HTTPException(status_code=403, detail="bad secret")
+    payload = await request.json()
+    # Hier könntest du später die eingehende Telegram-Message verarbeiten.
+    # Für jetzt reicht ein 200 mit ok=True, damit Telegram zufrieden ist.
+    return {"ok": True}

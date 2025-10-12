@@ -1,0 +1,15 @@
+{
+  # E-Mail für Let's Encrypt (bitte anpassen)
+  email daniel.baader.db@gmail.com
+}
+
+# Hauptdomain
+mychatbuddy.dev {
+  encode zstd gzip
+  reverse_proxy http://web:80
+}
+
+# www -> Hauptdomain
+www.mychatbuddy.dev {
+  redir https://mychatbuddy.dev{uri} permanent
+}

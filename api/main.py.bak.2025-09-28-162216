@@ -1,0 +1,79 @@
+from fastapi import FastAPI, Header, Request, HTTPException
+from pydantic import BaseModel
+from datetime import datetime, timezone
+import os
+import httpx
+
+app = FastAPI(title="mychatbuddy API")
+
+# ====== Modelle für /chat ======
+class ChatIn(BaseModel):
+    message: str
+
+class ChatOut(BaseModel):
+    reply: str
+    ts: str
+
+# ====== Health ======
+@app.get("/health")
+async def health():
+    return {"status": "ok", "ts": datetime.now(timezone.utc).isoformat()}
+
+# ====== Dein /chat (Dummy-Logik – kann später ans Modell) ======
+@app.post("/chat", response_model=ChatOut)
+async def chat(body: ChatIn):
+    return ChatOut(
+        reply=f"Du sagtest: {body.message}",
+        ts=datetime.now(timezone.utc).isoformat()
+    )
+
+# ====== Telegram Webhook ======
+# Telegram schickt Updates hierher. Wir prüfen das Secret,
+# leiten den Text an /chat weiter und schicken die Antwort mit sendMessage zurück.
+@app.post("/telegram/webhook")
+async def telegram_webhook(
+    request: Request,
+    x_telegram_bot_api_secret_token: str | None = Header(default=None)
+):
+    expected = os.getenv("TELEGRAM_WEBHOOK_SECRET")
+    if not expected or x_telegram_bot_api_secret_token != expected:
+        # Geheimnis fehlt/falsch => 403, damit Telegram den Endpoint abwertet.
+        raise HTTPException(status_code=403, detail="bad secret")
+
+    payload = await request.json()
+
+    # Wir nehmen den häufigsten Fall: normale Text-Nachricht
+    msg = payload.get("message") or {}
+    chat = msg.get("chat") or {}
+    chat_id = chat.get("id")
+    text = msg.get("text") or ""
+
+    # Wenn nichts Sinnvolles drin ist, ok=True antworten (Telegram braucht 200er)
+    if not chat_id:
+        return {"ok": True}
+
+    # 1) Antwort über internen /chat-Endpunkt holen
+    async with httpx.AsyncClient(timeout=10) as client:
+        chat_resp = await client.post(
+            "http://127.0.0.1:8000/chat",
+            json={"message": text},
+        )
+        chat_resp.raise_for_status()
+        data = chat_resp.json()
+        reply_text = data.get("reply", "👍")
+
+        # 2) Antwort an den User senden
+        token = os.getenv("TELEGRAM_BOT_TOKEN")
+        tg_url = f"https://api.telegram.org/bot{token}/sendMessage"
+        await client.post(
+            tg_url,
+            json={
+                "chat_id": chat_id,
+                "text": reply_text,
+                # optional: "parse_mode": "HTML",
+            },
+            timeout=10,
+        )
+
+    # Telegram erwartet nur, dass wir 200 OK liefern
+    return {"ok": True}

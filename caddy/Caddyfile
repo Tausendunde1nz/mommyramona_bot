@@ -1,0 +1,44 @@
+# -------- Gemeinsame Defaults / Header --------
+(common) {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer-when-downgrade"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	}
+}
+
+# -------- Redirect: www -> Apex --------
+www.mychatbuddy.dev {
+	import common
+	redir https://mychatbuddy.dev{uri} 308
+}
+
+# -------- Hauptseite (Nginx-Test) --------
+mychatbuddy.dev {
+	import common
+
+	# Healthcheck (liefert 200 auf /health)
+	@health path /health
+	respond @health 200
+
+	# Upstream: dein Nginx-Testcontainer im 'proxy'-Netz
+	# (der Name 'nginx-test-web-1' passt zu deinem Setup)
+	reverse_proxy nginx-test-web-1:80
+}
+
+# -------- API (FastAPI/Uvicorn) --------
+api.mychatbuddy.dev {
+	import common
+
+	# Healthcheck für die API
+#	@health path /health
+#	respond @health 200
+
+	# Upstream: dein API-Container (im 'proxy'-Netz)
+	# falls der Container bei dir anders heißt, hier anpassen
+	reverse_proxy api-mychatbuddy:8000
+}
