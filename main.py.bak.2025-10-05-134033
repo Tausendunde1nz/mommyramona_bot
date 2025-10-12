@@ -1,0 +1,45 @@
+import os, json, requests
+from flask import Flask, request, jsonify, abort
+
+app = Flask(__name__)
+
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
+SECRET    = os.environ.get("SECRET", "")
+
+TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
+
+@app.get("/health")
+def health():
+    return "OK", 200
+
+def check_secret():
+    incoming = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
+    if not SECRET or incoming != SECRET:
+        abort(403)
+
+@app.post("/webhook")
+def webhook():
+    # Secret-Prüfung (Nginx muss Header durchreichen – ist bei dir so konfiguriert)
+    check_secret()
+
+    update = request.get_json(silent=True) or {}
+    msg = (update.get("message") or update.get("edited_message")) or {}
+    chat = msg.get("chat") or {}
+    chat_id = chat.get("id")
+    text = msg.get("text", "")
+
+    # Simple, stabile Antwort-Logik (du kannst später ans LLM routen)
+    reply = "pong" if text.strip().lower() == "ping" else "👋 Hallo! (Ramona ist online)"
+
+    if chat_id:
+        try:
+            requests.post(
+                f"{TELEGRAM_API}/sendMessage",
+                json={"chat_id": chat_id, "text": reply},
+                timeout=8,
+            )
+        except Exception:
+            pass  # Antwortfehler nicht fatal fürs Webhook
+
+    # Telegram will 200/OK schnell zurück
+    return "", 200

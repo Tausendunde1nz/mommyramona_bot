@@ -1,0 +1,24 @@
+== Telegram-Send-Aufrufe (.py/.sh) ==
+./backup_old/main.py:34:TOKEN = os.getenv("BOT_TOKEN")
+./backup_old/main.py:248:        f"https://api.telegram.org/bot{TOKEN}/sendMessage",
+./main.py:30:BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
+./main.py:32:TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
+./main.py:58:                f"{TELEGRAM_API}/sendMessage",
+
+== Mommy/Ramona Referenzen ==
+./main.py.bak.1759678953:32:    reply = "pong" if text.strip().lower() == "ping" else "👋 Hallo! (Ramona ist online)"
+./backup_old/main.py.bak.2025-10-09-055220:16:        "Du bist Mommy Ramona – eine charmant-freche, verspielte virtuelle Begleiterin (18+). "
+./backup_old/main.py.bak.2025-10-09-055220:208:        "X-Title": "MommyRamona Bot"
+./backup_old/main.py.bak.2025-10-09-055220:274:        tg_send(chat_id, "Ich bin Mommy Ramona (18+). Flirty & charmant – aber respektvoll.\n"
+./backup_old/main.py:40:        "Du bist Mommy Ramona – eine charmant-freche, verspielte virtuelle Begleiterin (18+). "
+./backup_old/main.py:232:        "X-Title": "MommyRamona Bot"
+./backup_old/main.py:298:        tg_send(chat_id, "Ich bin Mommy Ramona (18+). Flirty & charmant – aber respektvoll.\n"
+./main.py:53:    reply = "pong" if text.lower() == "ping" else "✅ Test erfolgreich! MommyRamona kann wieder mit dir sprechen."
+./main.py.bak.2025-10-05-134033:32:    reply = "pong" if text.strip().lower() == "ping" else "👋 Hallo! (Ramona ist online)"
+./main.py.bak.2025-10-09-055212:29:    reply = "pong" if text.lower() == "ping" else "✅ Test erfolgreich! MommyRamona kann wieder mit dir sprechen."
+
+== Shellskripte mit echo/status ==
+
+== Dateiliste (kandidaten) ==
+./backup_old/main.py
+./main.py

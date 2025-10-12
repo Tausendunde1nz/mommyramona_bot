@@ -1,0 +1,17 @@
+
+services:
+  bot:
+    # Baut das Image aus dem lokalen Projekt (Dockerfile + Code)
+    build:
+      context: .
+    container_name: telegram_bot
+    # .env im selben Ordner: BOT_TOKEN, SECRET, WEBHOOK_URL
+    env_file:
+      - .env
+    # Container automatisch neu starten, falls er mal stoppt
+    restart: unless-stopped
+    # Port-Freigabe: Host:Container
+    ports:
+      - "8080:8080"
+    # Logs direkt in die Konsole (docker compose logs -f)
+    tty: true
